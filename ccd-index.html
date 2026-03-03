@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CCD Agent</title>
+    <script
+      defer
+      src="https://www.gstatic.com/ces-console/fast/chat-messenger/prod/v1.12/chat_messenger_compiled.js"
+    ></script>
+    <link
+      rel="stylesheet"
+      href="https://www.gstatic.com/ces-console/fast/chat-messenger/prod/v1.12/chat_messenger_compiled.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://www.gstatic.com/ces-console/fast/chat-messenger/prod/v1.12/chat_messenger_themes.css"
+    />
+    <style>
+      @font-face {
+        font-family: "Saint";
+        src: url("./saint.otf") format("opentype");
+        font-display: swap;
+      }
+
+      :root {
+        --title-font: "Saint", "Baskerville", "Times New Roman", Times, serif;
+        --body-font: "Times New Roman", "Baskerville", "Georgia", serif;
+      }
+
+      :root {
+        --bg: #07080a;
+        --panel: rgba(28, 32, 40, 0.78);
+        --panel-strong: rgba(35, 40, 49, 0.9);
+        --line: rgba(215, 227, 255, 0.14);
+        --line-strong: rgba(255, 255, 255, 0.28);
+        --text: #eef4ff;
+        --muted: #a4b0c7;
+        --accent: #94a8ff;
+        --accent-dark: #d2dcff;
+        --shine: rgba(255, 255, 255, 0.84);
+        --chrome-a: #f8fbff;
+        --chrome-b: #aab4c7;
+        --chrome-c: #616d82;
+        --shadow: 0 28px 90px rgba(0, 0, 0, 0.45);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        color: var(--text);
+        font-family: var(--body-font);
+        background:
+          linear-gradient(rgba(5, 7, 10, 0.52), rgba(5, 7, 10, 0.52)),
+          url("./Black.png") center / cover no-repeat fixed;
+        background-attachment: fixed;
+      }
+
+      .shell {
+        width: min(1280px, calc(100% - 40px));
+        margin: 32px auto;
+        padding: 28px;
+        border: 0;
+        border-radius: 28px;
+        background: transparent;
+        box-shadow: none;
+        backdrop-filter: none;
+        position: relative;
+      }
+
+      .shell::before {
+        content: none;
+        position: absolute;
+        inset: 1px;
+        border-radius: 27px;
+        pointer-events: none;
+        background:
+          linear-gradient(135deg, rgba(255, 255, 255, 0.22), transparent 20%, transparent 78%, rgba(255, 255, 255, 0.1)),
+          linear-gradient(180deg, rgba(255, 255, 255, 0.08), transparent 26%);
+        mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+        -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+        padding: 1px;
+        -webkit-mask-composite: xor;
+        mask-composite: exclude;
+      }
+
+      .topbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 16px;
+        margin-bottom: 28px;
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+      }
+
+      .badge {
+        width: 88px;
+        height: 64px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 0;
+        background: transparent;
+        border: 0;
+        box-shadow: none;
+        color: #0f1217;
+        font-size: 20px;
+        overflow: hidden;
+        position: relative;
+      }
+
+      .badge img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        display: block;
+        filter: drop-shadow(0 12px 22px rgba(0, 0, 0, 0.28));
+      }
+
+      .badge-fallback {
+        display: none;
+        font-family: var(--title-font);
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        text-shadow: 0 1px 0 rgba(255, 255, 255, 0.44);
+      }
+
+      .brand h1 {
+        margin: 0;
+        font-family: var(--title-font);
+        font-size: clamp(28px, 4vw, 44px);
+        line-height: 1;
+        letter-spacing: 0.01em;
+        color: #f8fbff;
+        text-shadow:
+          0 1px 0 rgba(255, 255, 255, 0.16),
+          0 10px 28px rgba(130, 154, 220, 0.18);
+      }
+
+      .brand p {
+        margin: 6px 0 0;
+        color: #f3f7ff;
+        font-size: 14px;
+      }
+
+      .pill {
+        padding: 10px 16px;
+        border: 1px solid rgba(255, 255, 255, 0.26);
+        border-radius: 999px;
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.18), rgba(108, 120, 145, 0.14));
+        box-shadow:
+          inset 0 1px 0 rgba(255, 255, 255, 0.36),
+          0 10px 22px rgba(0, 0, 0, 0.22);
+        font-size: 13px;
+        color: #f3f7ff;
+      }
+
+      .layout {
+        display: grid;
+        grid-template-columns: 1.08fr 0.92fr;
+        gap: 24px;
+      }
+
+      .hero,
+      .chat-panel {
+        border: 1px solid rgba(255, 255, 255, 0.22);
+        border-radius: 24px;
+        overflow: hidden;
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.02)),
+          var(--panel);
+        box-shadow:
+          inset 0 1px 0 rgba(255, 255, 255, 0.34),
+          inset 0 -1px 0 rgba(255, 255, 255, 0.06),
+          0 18px 42px rgba(0, 0, 0, 0.32);
+        position: relative;
+      }
+
+      .hero::before,
+      .chat-panel::before,
+      .entry-card::before {
+        content: "";
+        position: absolute;
+        left: 10px;
+        right: 10px;
+        top: 1px;
+        height: 32%;
+        border-radius: 18px 18px 120px 120px;
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.22), transparent);
+        pointer-events: none;
+      }
+
+      .hero {
+        padding: 32px;
+      }
+
+      .eyebrow {
+        display: none;
+      }
+
+      .hero h2 {
+        margin: 18px 0 14px;
+        font-family: var(--title-font);
+        font-size: clamp(36px, 4vw, 62px);
+        line-height: 0.94;
+        letter-spacing: 0.01em;
+        color: #f5f8ff;
+        text-shadow:
+          0 1px 0 rgba(255, 255, 255, 0.14),
+          0 0 24px rgba(156, 176, 255, 0.1);
+      }
+
+      .hero-copy {
+        max-width: 56ch;
+        margin: 0 0 28px;
+        color: #f3f7ff;
+        font-size: 17px;
+        line-height: 1.65;
+      }
+
+      .entry-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 14px;
+        margin-bottom: 26px;
+      }
+
+      .entry-card {
+        min-height: 208px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        padding: 18px;
+        border: 1px solid rgba(255, 255, 255, 0.34);
+        border-radius: 20px;
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.26), rgba(118, 129, 152, 0.16) 46%, rgba(46, 53, 66, 0.32)),
+          linear-gradient(135deg, rgba(255, 255, 255, 0.14), rgba(48, 55, 68, 0.18));
+        box-shadow:
+          inset 0 1px 0 rgba(255, 255, 255, 0.54),
+          inset 0 -18px 26px rgba(15, 18, 25, 0.32),
+          inset 14px 0 20px rgba(255, 255, 255, 0.04),
+          0 14px 32px rgba(0, 0, 0, 0.26);
+        transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+        position: relative;
+      }
+
+      .entry-card::after {
+        content: "";
+        position: absolute;
+        inset: 1px;
+        border-radius: 19px;
+        background:
+          linear-gradient(120deg, rgba(255, 255, 255, 0.34), transparent 20%, transparent 68%, rgba(255, 255, 255, 0.12)),
+          linear-gradient(180deg, rgba(255, 255, 255, 0.1), transparent 34%);
+        opacity: 0.9;
+        pointer-events: none;
+      }
+
+      .entry-card:hover {
+        transform: translateY(-2px);
+        box-shadow:
+          inset 0 1px 0 rgba(255, 255, 255, 0.64),
+          inset 0 -18px 26px rgba(15, 18, 25, 0.34),
+          0 20px 42px rgba(0, 0, 0, 0.36);
+        border-color: rgba(148, 168, 255, 0.38);
+      }
+
+      .entry-card strong {
+        display: block;
+        margin-bottom: 10px;
+        font-size: 18px;
+        color: #f3f7ff;
+        position: relative;
+        z-index: 1;
+      }
+
+      .entry-card p {
+        margin: 0;
+        color: #f3f7ff;
+        font-size: 14px;
+        line-height: 1.6;
+        position: relative;
+        z-index: 1;
+      }
+
+      .entry-index {
+        width: 38px;
+        height: 38px;
+        display: grid;
+        place-items: center;
+        border-radius: 12px;
+        background: rgba(10, 12, 18, 0.24);
+        color: transparent;
+        border: 1px solid rgba(255, 255, 255, 0.42);
+        box-shadow:
+          inset 0 1px 0 rgba(255, 255, 255, 0.4),
+          inset 0 -8px 14px rgba(42, 51, 69, 0.22),
+          0 8px 18px rgba(0, 0, 0, 0.18);
+        -webkit-text-stroke: 1px #f8fbff;
+        font-weight: 700;
+        position: relative;
+        z-index: 1;
+      }
+
+      .quick-note {
+        display: grid;
+        gap: 10px;
+        padding: 18px 20px;
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        border-radius: 20px;
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(86, 99, 124, 0.12));
+        box-shadow:
+          inset 0 1px 0 rgba(255, 255, 255, 0.24),
+          0 10px 22px rgba(0, 0, 0, 0.18);
+      }
+
+      .quick-note strong {
+        font-size: 18px;
+        color: #f3f7ff;
+      }
+
+      .quick-note p {
+        margin: 0;
+        color: #f3f7ff;
+        line-height: 1.65;
+      }
+
+      .chat-panel {
+        display: flex;
+        flex-direction: column;
+        min-height: 760px;
+      }
+
+      .chat-head {
+        padding: 18px 20px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.16);
+        background:
+          linear-gradient(180deg, rgba(250, 252, 255, 0.16), rgba(79, 89, 108, 0.16));
+        position: relative;
+      }
+
+      .chat-head::after {
+        content: "";
+        position: absolute;
+        left: 18px;
+        right: 18px;
+        bottom: -1px;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.44), transparent);
+      }
+
+      .chat-head h3 {
+        margin: 0 0 6px;
+        font-size: 22px;
+        font-family: var(--title-font);
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: #f4f8ff;
+      }
+
+      .chat-head p {
+        margin: 0;
+        color: #f3f7ff;
+        font-size: 14px;
+      }
+
+      .chat-wrap {
+        flex: 1;
+        min-height: 680px;
+        background:
+          radial-gradient(circle at top, rgba(184, 207, 255, 0.08), transparent 30%),
+          linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.01)),
+          repeating-linear-gradient(
+            0deg,
+            rgba(255, 255, 255, 0.03) 0,
+            rgba(255, 255, 255, 0.03) 1px,
+            transparent 1px,
+            transparent 36px
+          ),
+          repeating-linear-gradient(
+            90deg,
+            rgba(255, 255, 255, 0.025) 0,
+            rgba(255, 255, 255, 0.025) 1px,
+            transparent 1px,
+            transparent 36px
+          );
+        position: relative;
+      }
+
+      .chat-wrap::before {
+        content: "";
+        position: absolute;
+        inset: 14px 14px 18px;
+        border-radius: 26px;
+        border: 1px solid rgba(186, 203, 255, 0.16);
+        box-shadow:
+          inset 0 1px 0 rgba(255, 255, 255, 0.08),
+          0 0 0 1px rgba(14, 18, 25, 0.6),
+          0 22px 30px rgba(0, 0, 0, 0.34);
+        pointer-events: none;
+      }
+
+      .chat-wrap::after {
+        content: "LIVE CCD INTERFACE";
+        position: absolute;
+        top: 18px;
+        right: 24px;
+        padding: 7px 10px;
+        border-radius: 999px;
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        background: rgba(10, 12, 18, 0.56);
+        color: #d7e1ff;
+        font-family: var(--title-font);
+        font-size: 10px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        pointer-events: none;
+      }
+
+      .chat-panel::after {
+        content: "";
+        position: absolute;
+        inset: 8px;
+        border-radius: 18px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        box-shadow:
+          inset 0 1px 0 rgba(255, 255, 255, 0.1),
+          inset 0 0 0 1px rgba(0, 0, 0, 0.25);
+        pointer-events: none;
+      }
+
+      chat-messenger-container {
+        width: 100%;
+        height: 100%;
+        position: relative;
+      }
+
+      chat-messenger-container::before,
+      chat-messenger-container::after {
+        content: "";
+        position: absolute;
+        z-index: 2;
+        pointer-events: none;
+      }
+
+      chat-messenger-container::before {
+        top: 26px;
+        left: 28px;
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        background: radial-gradient(circle at 35% 35%, #ffffff, #a3b3ff 45%, #263149 100%);
+        box-shadow:
+          0 0 16px rgba(147, 167, 255, 0.45),
+          0 0 0 6px rgba(255, 255, 255, 0.04);
+      }
+
+      chat-messenger-container::after {
+        left: 24px;
+        right: 24px;
+        top: 58px;
+        bottom: 24px;
+        background:
+          repeating-linear-gradient(
+            180deg,
+            rgba(255, 255, 255, 0.02) 0,
+            rgba(255, 255, 255, 0.02) 2px,
+            transparent 2px,
+            transparent 7px
+          );
+        opacity: 0.5;
+        border-radius: 18px;
+      }
+
+      chat-messenger {
+        width: 100%;
+        height: 100%;
+        display: block;
+        position: relative;
+        z-index: 1;
+      }
+
+      .footer {
+        margin-top: 18px;
+        color: #f3f7ff;
+        font-size: 13px;
+        text-align: right;
+      }
+
+      .badge.is-fallback img {
+        display: none;
+      }
+
+      .badge.is-fallback .badge-fallback {
+        display: inline;
+      }
+
+      @media (max-width: 1080px) {
+        .layout {
+          grid-template-columns: 1fr;
+        }
+
+        .chat-panel {
+          min-height: 680px;
+        }
+      }
+
+      @media (max-width: 760px) {
+        .shell {
+          width: min(100% - 24px, 100%);
+          margin: 12px auto;
+          padding: 14px;
+          border-radius: 22px;
+        }
+
+        .topbar {
+          align-items: flex-start;
+          flex-direction: column;
+        }
+
+        .entry-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .hero {
+          padding: 22px;
+        }
+
+        .chat-wrap {
+          min-height: 620px;
+        }
+
+        .footer {
+          text-align: left;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <script>
+      window.addEventListener("chat-messenger-loaded", () => {
+        chatSdk.registerContext(
+          chatSdk.prebuilt.ces.createContext({
+            deploymentName:
+              "projects/ccd-chatbot/locations/us/apps/a28a13e3-0c9c-4440-ab9d-086c30fc232d/deployments/default_web",
+            tokenBroker: {
+              enableTokenBroker: true,
+              enableRecaptcha: false,
+            },
+          })
+        );
+      });
+    </script>
+
+    <main class="shell">
+      <div class="topbar">
+        <div class="brand">
+          <div class="badge" id="cameraBadge">
+            <img
+              src="./camera-icon.png"
+              alt="CCD camera icon"
+              onerror="document.getElementById('cameraBadge').classList.add('is-fallback')"
+            />
+            <span class="badge-fallback">CCD</span>
+          </div>
+          <div>
+            <h1>CCD Agent</h1>
+            <p>Learn CCD. Pick a camera. Look up real models.</p>
+          </div>
+        </div>
+        <div class="pill">Default in English. Chinese supported too.</div>
+      </div>
+
+      <section class="layout">
+        <section class="hero">
+          <h2>CCD Camera Agent — Best CCD for Your Vibe</h2>
+          <p class="hero-copy">
+            A metallic, early-2000s inspired guide for the CCD era. Use it to learn
+            the CCD look, narrow down the right camera path, and check specific
+            models before you buy. It works best when you answer step by step.
+          </p>
+
+          <div class="entry-grid">
+            <article class="entry-card">
+              <div>
+                <div class="entry-index">1</div>
+                <strong>Decode the CCD Look</strong>
+                <p>
+                  Start here if you want the CCD rundown, or if you want to compare
+                  CCD with smartphone, CMOS, or film.
+                </p>
+              </div>
+              <p>Try: "What is CCD?"</p>
+            </article>
+
+            <article class="entry-card">
+              <div>
+                <div class="entry-index">2</div>
+                <strong>Build Your Match</strong>
+                <p>
+                  Get a guided buying flow based on your budget, style, and how you
+                  actually want to shoot.
+                </p>
+              </div>
+              <p>Try: "Help me choose a CCD camera"</p>
+            </article>
+
+            <article class="entry-card">
+              <div>
+                <div class="entry-index">3</div>
+                <strong>Scan a Model</strong>
+                <p>
+                  Ask about a specific model and get a quick summary of strengths,
+                  limitations, and what to watch for.
+                </p>
+              </div>
+              <p>Try: "Tell me about Canon PowerShot S95"</p>
+            </article>
+          </div>
+
+          <div class="quick-note">
+            <strong>Best way to use it</strong>
+            <p>
+              If you enter the buying flow, you can just reply with numbers for each
+              question. The agent will ask one thing at a time instead of dumping
+              everything at once.
+            </p>
+          </div>
+        </section>
+
+        <section class="chat-panel">
+          <div class="chat-head">
+            <h3>Start chatting</h3>
+            <p>Type naturally, or jump straight into one of the three entry points.</p>
+          </div>
+          <div class="chat-wrap">
+            <chat-messenger url-allowlist="*">
+              <chat-messenger-container
+                chat-title="CCD Agent"
+                chat-title-icon="./camera-icon.png"
+                enable-file-upload
+              >
+                <chat-reset-session-button
+                  slot="titlebar-actions"
+                  title-text="Start new chat"
+                ></chat-reset-session-button>
+              </chat-messenger-container>
+            </chat-messenger>
+          </div>
+        </section>
+      </section>
+
+      <div class="footer">Built for CCD camera discovery in a silver Y2K skin.</div>
+    </main>
+  </body>
+</html>
